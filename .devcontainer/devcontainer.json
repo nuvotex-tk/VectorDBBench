@@ -2,46 +2,25 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
 {
 	"name": "VectorDBBench dev container",
-	"build": {
-		// Sets the run context to one level up instead of the .devcontainer folder.
-		"context": "..",
-		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-		"dockerfile": "./Dockerfile"
-	},
-	"runArgs": [
-		"--privileged",
-		"--cap-add=SYS_PTRACE"
+	"image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+	"capAdd": [
+		"SYS_PTRACE"
 	],
 	"mounts": [
-		// You have to make sure source directory is avaliable on your host file system.
-		"source=${localEnv:HOME}/vectordb_bench/dataset,target=/tmp/vectordb_bench/dataset,type=bind,consistency=cached"
+		"source=vectordb_bench_dataset,target=/tmp/vectordb_bench/dataset,type=volume,consistency=cached"
 	],
 	"workspaceMount": "source=${localWorkspaceFolder},target=/opt/code/VectorDBBench,type=bind,consistency=cached",
 	"workspaceFolder": "/opt/code/VectorDBBench",
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
 		8501
 	],
-
-	// Uncomment the next line to run commands after the container is created.
-	// "postCreateCommand": "cat /etc/os-release",
-
-	// Configure tool-specific properties.
+	"postAttachCommand": "sudo chown -R vscode /opt/code/VectorDBBench",
+	"postCreateCommand": "pip3 install -e .[all]",
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"eamodio.gitlens",
-				"ms-python.python",
-				"ms-python.debugpy",
-				"ms-azuretools.vscode-docker"
+				"eamodio.gitlens"
 			]
 		}
 	}
-
-	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "devcontainer"
 }
