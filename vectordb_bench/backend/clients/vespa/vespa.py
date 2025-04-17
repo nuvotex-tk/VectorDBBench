@@ -124,7 +124,7 @@ class Vespa(VectorDB):
 
         ranking = self.case_config.quantization_type
 
-        result = self.client.query({"yql": yql, "input.query(query_embedding)": query_embedding, "ranking": ranking})
+        result = self.client.query({"yql": yql, "input.query(query_embedding)": query_embedding, "hits": k, "ranking": ranking})
         result_ids = [child["fields"]["id"] for child in result.get_json()["root"]["children"]]
         return result_ids
 
@@ -165,7 +165,7 @@ class Vespa(VectorDB):
             Field(
                 "embedding",
                 f"tensor<float>(x[{self.dim}])",
-                indexing=["summary", "attribute", "index"],
+                indexing=["attribute", "index"],
                 ann=HNSW(**self.case_config.index_param()),
             ),
         ]
