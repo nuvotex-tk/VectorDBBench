@@ -14,7 +14,7 @@
 	"forwardPorts": [
 		8501
 	],
-	"postAttachCommand": "sudo chown -R vscode /opt/code/VectorDBBench",
+	"postAttachCommand": "sudo chown -R vscode:vscode /opt/code/VectorDBBench",
 	"postCreateCommand": "pip3 install -e .[all]",
 	"customizations": {
 		"vscode": {
