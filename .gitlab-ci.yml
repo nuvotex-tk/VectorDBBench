@@ -1,0 +1,4 @@
+include:
+  - component: $CI_SERVER_HOST/$CI_TEMPLATES_PROJECT_NAME/container@${CI_TEMPLATES_PROJECT_REF}
+    inputs:
+      name: vectordbbenchmark
