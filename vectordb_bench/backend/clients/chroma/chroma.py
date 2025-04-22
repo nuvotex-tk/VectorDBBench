@@ -49,7 +49,7 @@ class ChromaClient(VectorDB):
         # create connection
         self.client = chromadb.HttpClient(host=self.db_config["host"], port=self.db_config["port"])
 
-        self.collection = self.client.get_or_create_collection("example2")
+        self.collection = self.client.get_or_create_collection("example2", metadata=self.case_config.index_param())
         yield
         self.client = None
         self.collection = None

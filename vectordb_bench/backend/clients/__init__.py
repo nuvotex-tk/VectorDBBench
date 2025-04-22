@@ -158,7 +158,7 @@ class DB(Enum):
             from .test.test import Test
 
             return Test
-        
+
         if self == DB.Vespa:
             from .vespa.vespa import Vespa
 
@@ -279,12 +279,11 @@ class DB(Enum):
             from .test.config import TestConfig
 
             return TestConfig
-        
+
         if self == DB.Vespa:
             from .vespa.config import VespaConfig
 
             return VespaConfig
-
 
         msg = f"Unknown DB: {self.name}"
         raise ValueError(msg)
@@ -377,13 +376,18 @@ class DB(Enum):
             from .tidb.config import TiDBIndexConfig
 
             return TiDBIndexConfig
-        
+
         if self == DB.Vespa:
             from .vespa.config import VespaHNSWConfig
 
             return VespaHNSWConfig
 
-        # DB.Pinecone, DB.Chroma, DB.Redis
+        if self == DB.Chroma:
+            from .chroma.config import ChromaHNSWConfig
+
+            return ChromaHNSWConfig
+
+        # DB.Pinecone, DB.Redis
         return EmptyDBCaseConfig
 
 

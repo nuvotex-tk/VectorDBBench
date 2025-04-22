@@ -1180,6 +1180,38 @@ CaseConfigParamInput_EFConstruction_Vespa = CaseConfigInput(
     isDisplayed=lambda config: config[CaseConfigParamType.IndexType] == IndexType.HNSW.value,
 )
 
+CaseConfigParamInput_M_Chroma = CaseConfigInput(
+    label=CaseConfigParamType.M,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 4,
+        "max": 64,
+        "value": 16,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_IndexType_Chroma = CaseConfigInput(
+    label=CaseConfigParamType.IndexType,
+    inputType=InputType.Option,
+    inputConfig={
+        "options": [
+            IndexType.HNSW.value,
+        ],
+    },
+)
+
+CaseConfigParamInput_EFConstruction_Chroma = CaseConfigInput(
+    label=CaseConfigParamType.EFConstruction,
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 8,
+        "max": 512,
+        "value": 100,
+    },
+    isDisplayed=lambda config: config[CaseConfigParamType.IndexType] == IndexType.HNSW.value,
+)
+
 
 MilvusLoadConfig = [
     CaseConfigParamInput_IndexType,
@@ -1392,10 +1424,19 @@ VespaLoadingConfig = [
     CaseConfigParamInput_IndexType_Vespa,
     CaseConfigParamInput_QuantizationType_Vespa,
     CaseConfigParamInput_M_Vespa,
-    CaseConfigParamInput_EF_Milvus,
     CaseConfigParamInput_EFConstruction_Vespa,
+    CaseConfigParamInput_EF_Milvus,
 ]
 VespaPerformanceConfig = VespaLoadingConfig
+
+ChromaLoadingConfig = [
+    CaseConfigParamInput_IndexType_Chroma,
+    CaseConfigParamInput_M_Chroma,
+    CaseConfigParamInput_EFConstruction_Chroma,
+    CaseConfigParamInput_EF_Milvus,
+]
+ChromaPerformanceConfig = ChromaLoadingConfig
+
 
 CASE_CONFIG_MAP = {
     DB.Milvus: {
@@ -1457,4 +1498,8 @@ CASE_CONFIG_MAP = {
         CaseLabel.Load: VespaLoadingConfig,
         CaseLabel.Performance: VespaPerformanceConfig,
     },
+    DB.Chroma: {
+        CaseLabel.Load: ChromaLoadingConfig,
+        CaseLabel.Performance: ChromaPerformanceConfig,
+    }
 }
