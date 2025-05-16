@@ -28,15 +28,17 @@ class Vespa(VectorDB):
         self.case_config = db_case_config or VespaHNSWConfig()
         self.schema_name = collection_name
 
-        client = self.deploy_http()
-        client.wait_for_application_up()
+        self.client = self.deploy_http()
+        self.client.wait_for_application_up()
 
         if drop_old:
             try:
-                client.delete_all_docs("vectordbbench_content", self.schema_name)
+                self.client.delete_all_docs(
+                    "vectordbbench_content", self.schema_name)
             except Exception:
                 drop_old = False
-                log.exception(f"Vespa client drop_old schema: {self.schema_name}")
+                log.exception(
+                    f"Vespa client drop_old schema: {self.schema_name}")
 
     @contextmanager
     def init(self) -> Generator[None, None, None]:
@@ -53,9 +55,8 @@ class Vespa(VectorDB):
             >>> with self.init():
             >>>     self.insert_embeddings()
         """
-        self.client = application.Vespa(self.db_config["url"], port=self.db_config["port"])
-        yield
-        self.client = None
+        with self.client.syncio() as self._session:
+            yield
 
     def need_normalize_cosine(self) -> bool:
         """Wheather this database need to normalize dataset to support COSINE"""
@@ -80,7 +81,8 @@ class Vespa(VectorDB):
         """
         assert self.client is not None
 
-        data = ({"id": str(i), "fields": {"id": i, "embedding": e}} for i, e in zip(metadata, embeddings, strict=True))
+        data = ({"id": str(i), "fields": {"id": i, "embedding": e}}
+                for i, e in zip(metadata, embeddings, strict=True))
         self.client.feed_iterable(data, self.schema_name)
         return len(embeddings), None
 
@@ -100,7 +102,7 @@ class Vespa(VectorDB):
         Returns:
             list[int]: list of k most similar embeddings IDs to the query embedding.
         """
-        assert self.client is not None
+        assert self._session is not None
 
         ef = self.case_config.ef
         extra_ef = max(0, ef - k)
@@ -124,8 +126,10 @@ class Vespa(VectorDB):
 
         ranking = self.case_config.quantization_type
 
-        result = self.client.query({"yql": yql, "input.query(query_embedding)": query_embedding, "hits": k, "ranking": ranking})
-        result_ids = [child["fields"]["id"] for child in result.get_json()["root"]["children"]]
+        result = self._session.query(
+            {"yql": yql, "input.query(query_embedding)": query_embedding, "hits": k, "ranking": ranking})
+        result_ids = [child["fields"]["id"]
+                      for child in result.get_json()["root"]["children"]]
         return result_ids
 
     def optimize(self, data_size: int | None = None):
@@ -185,7 +189,8 @@ class Vespa(VectorDB):
                         "attribute",
                         "index",
                     ],
-                    ann=HNSW(**{**self.case_config.index_param(), "distance_metric": "hamming"}),
+                    ann=HNSW(**{**self.case_config.index_param(),
+                             "distance_metric": "hamming"}),
                     is_document_field=False,
                 )
             )
@@ -205,13 +210,15 @@ class Vespa(VectorDB):
                             name="none",
                             first_phase="",
                             inherits="default",
-                            inputs=[("query(query_embedding)", f"tensor<float>(x[{self.dim}])")],
+                            inputs=[("query(query_embedding)",
+                                     f"tensor<float>(x[{self.dim}])")],
                         ),
                         RankProfile(
                             name="binary",
                             first_phase="",
                             inherits="default",
-                            inputs=[("query(query_embedding)", f"tensor<int8>(x[{math.ceil(self.dim / 8)}])")],
+                            inputs=[
+                                ("query(query_embedding)", f"tensor<int8>(x[{math.ceil(self.dim / 8)}])")],
                         ),
                     ],
                 )
@@ -231,12 +238,14 @@ class Vespa(VectorDB):
         """
         import requests
 
-        url = self.db_config["url"] + ":19071/application/v2/tenant/default/prepareandactivate"
+        url = self.db_config["url"] + \
+            ":19071/application/v2/tenant/default/prepareandactivate"
         package_data = self.application_package.to_zip()
         headers = {"Content-Type": "application/zip"}
 
         try:
-            response = requests.post(url=url, data=package_data, headers=headers, timeout=10)
+            response = requests.post(
+                url=url, data=package_data, headers=headers, timeout=10)
 
             response.raise_for_status()
             result = response.json()
