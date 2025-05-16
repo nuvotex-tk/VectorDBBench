@@ -19,6 +19,7 @@ RUN mkdir logs
 RUN mkdir data
 RUN chown -R 1000:1000 /app
 USER 1000:1000
+WORKDIR /app
 
 EXPOSE 8501
 
@@ -27,5 +28,6 @@ VOLUME [ "/app/data" ]
 ENV RESULTS_LOCAL_DIR=/app/data/results
 ENV DATASET_LOCAL_DIR=/app/data/dataset
 ENV DROP_OLD=True
+ENV HOME=/app
 
 CMD ["python3", "-m", "vectordb_bench"]
