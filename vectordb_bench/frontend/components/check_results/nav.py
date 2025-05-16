@@ -1,4 +1,4 @@
-from streamlit_extras.switch_page_button import switch_page
+import streamlit
 
 
 def NavToRunTest(st):
@@ -6,17 +6,17 @@ def NavToRunTest(st):
     st.write("You can set the configs and run your own test.")
     navClick = st.button("Run Your Test &nbsp;&nbsp;>")
     if navClick:
-        switch_page("run test")
+        streamlit.switch_page("pages/run_test.py")
 
 
 def NavToQuriesPerDollar(st):
     st.subheader("Compare qps with price.")
     navClick = st.button("QP$ (Quries per Dollar) &nbsp;&nbsp;>")
     if navClick:
-        switch_page("quries_per_dollar")
+        streamlit.switch_page("pages/quries_per_dollar.py")
 
 
 def NavToResults(st, key="nav-to-results"):
     navClick = st.button("< &nbsp;&nbsp;Back to Results", key=key)
     if navClick:
-        switch_page("vdb benchmark")
+        streamlit.switch_page("vdb_benchmark.py")
