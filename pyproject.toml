@@ -27,7 +27,7 @@ dependencies = [
     "click",
     "pytz",
     "streamlit-autorefresh",
-    "streamlit==1.44.*",
+    "streamlit",
     "streamlit_extras",
     "tqdm",
     "s3fs",

@@ -7,8 +7,8 @@ from contextlib import contextmanager
 from vespa import application
 
 from ..api import VectorDB
-from .config import VespaHNSWConfig
 from . import util
+from .config import VespaHNSWConfig
 
 log = logging.getLogger(__name__)
 
@@ -28,12 +28,12 @@ class Vespa(VectorDB):
         self.case_config = db_case_config or VespaHNSWConfig()
         self.schema_name = collection_name
 
-        self.client = self.deploy_http()
-        self.client.wait_for_application_up()
+        client = self.deploy_http()
+        client.wait_for_application_up()
 
         if drop_old:
             try:
-                self.client.delete_all_docs(
+                client.delete_all_docs(
                     "vectordbbench_content", self.schema_name)
             except Exception:
                 drop_old = False
@@ -55,8 +55,11 @@ class Vespa(VectorDB):
             >>> with self.init():
             >>>     self.insert_embeddings()
         """
+        self.client = application.Vespa(
+            self.db_config["url"], port=self.db_config["port"])
         with self.client.syncio() as self._session:
             yield
+        self.client = None
 
     def need_normalize_cosine(self) -> bool:
         """Wheather this database need to normalize dataset to support COSINE"""
@@ -118,19 +121,16 @@ class Vespa(VectorDB):
             id_filter = filters.get("id")
             yql += f" and id >= {id_filter}"
 
-        query_embedding = (
-            query
-            if self.case_config.quantization_type == "none"
-            else util.binarize_tensor(query)
-        )
+        query_embedding = query if self.case_config.quantization_type == "none" else util.binarize_tensor(
+            query)
 
         ranking = self.case_config.quantization_type
 
         result = self._session.query(
-            {"yql": yql, "input.query(query_embedding)": query_embedding, "hits": k, "ranking": ranking})
-        result_ids = [child["fields"]["id"]
-                      for child in result.get_json()["root"]["children"]]
-        return result_ids
+            {"yql": yql, "input.query(query_embedding)": query_embedding,
+             "hits": k, "ranking": ranking}
+        )
+        return [child["fields"]["id"] for child in result.get_json()["root"]["children"]]
 
     def optimize(self, data_size: int | None = None):
         """optimize will be called between insertion and search in performance cases.
@@ -226,6 +226,7 @@ class Vespa(VectorDB):
             validations=[
                 Validation(ValidationID.tensorTypeChange, until=tomorrow),
                 Validation(ValidationID.fieldTypeChange, until=tomorrow),
+                Validation(ValidationID.contentClusterRemoval, until=tomorrow),
             ],
         )
 
