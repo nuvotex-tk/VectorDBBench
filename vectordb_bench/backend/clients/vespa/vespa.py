@@ -165,6 +165,7 @@ class Vespa(VectorDB):
                 "id",
                 "int",
                 indexing=["summary", "attribute"],
+                attribute=["fast-search"],
             ),
             Field(
                 "embedding",
